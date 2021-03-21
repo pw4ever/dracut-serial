@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # 2018, Georg Sauthoff <mail@gms.tf>
+# 2021, Wei Peng <me@1pengw.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # called by dracut
 check() {
-    require_binaries agetty || return 1
+    #require_binaries agetty || return 1
     # 0 enables by default, 255 only on request
     return 0
 }
@@ -23,13 +24,13 @@ cmdline() {
 
 # called by dracut
 install() {
-    inst agetty
-    inst_simple "${moddir}/serial-emergency@.service" "$systemdsystemunitdir/serial-emergency@.service"
-    inst_simple "${moddir}/dracut-emergency.service" "$systemdsystemconfdir/dracut-emergency.service"
-    inst_simple "${moddir}/systemd-ask-password-serial.service" "$systemdsystemunitdir/systemd-ask-password-serial.service"
-    inst_simple "${moddir}/systemd-ask-password-console.service" "$systemdsystemconfdir/systemd-ask-password-console.service"
-    systemctl --root "$initdir" enable serial-emergency@ttyS0.service
-    systemctl --root "$initdir" enable systemd-ask-password-serial.service
+    inst_simple "${systemdsystemunitdir}/serial-getty@.service" "${systemdsystemunitdir}/serial-getty@.service"
+    inst_simple "${moddir}/systemd-ask-password-serial@.service" "${systemdsystemunitdir}/systemd-ask-password-serial@.service"
+    ls /dev/ttyS* | xargs -n 1 basename | while read -r tty; do
+    #for tty in ttyS0 ttyS4; do
+        systemctl --root "$initdir" enable serial-getty@"$tty".service
+        systemctl --root "$initdir" enable systemd-ask-password-serial@"$tty".service
+    done
     return 0
 }
 
